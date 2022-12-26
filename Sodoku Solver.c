@@ -20,19 +20,12 @@ int main(void)
         printf("The sudoku you entered is invalid.\n\n");
         goto start;
     }
+
     // Call function to fill possibilities
     fill_possibilities();
     do
     {
         int initial_check = check_progress();
-        // Fill naked singles
-        naked_singles();
-        fill_possibilities();
-        // Fill hidden singles
-        hidden_singles();
-        fill_possibilities();
-        // Find naked pairs
-        naked_pairs();
         // Fill naked singles
         naked_singles();
         // Fill hidden singles
@@ -43,16 +36,20 @@ int main(void)
         {
             break;
         }
+        // End the loop when no blank spaces left
     } while (check_progress());
     
-    // The puzzle is unsolvable if blank spaces still left
-    if (check_progress())
+    // Solve the rest of the puzzle using backtracking and display it
+    if (solve_sudoku())
     {
+        printf("The solution is: \n");
         display_sudoku();
-        printf("There is no possible solution.\n\n");
+    }
+    // If puzzle can not be solved
+    else
+    {
+        printf("There is no possible solution\n\n");
         return 1;
     }
-    printf("The solution is: ");
-    display_sudoku();
     return 0;
 }
