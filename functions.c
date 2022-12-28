@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #define GRID_SIZE 9
 // The third dimension is for storing possibilities
-int sudoku[GRID_SIZE][GRID_SIZE][10] = { 0 };
+int sudoku[GRID_SIZE][GRID_SIZE][10] = {0};
 
 /***********************************************************************************************
  * get_sudoku : Allows the user to enter a sudoku puzzle row wise.                             *
@@ -13,8 +13,8 @@ int sudoku[GRID_SIZE][GRID_SIZE][10] = { 0 };
 void get_sudoku(void)
 {
     printf("Enter a sudoku puzzle row wise(0 for blank space).\n");
-    printf("A stream of numbers (without spaces) should be entered from 0 to 9.\n");
-    printf("Any number entered that is ouside this limit will not be registered.\n");
+    printf("A stream of numbers (without spaces) should be entered.\n");
+    printf("Any characters or extra numbers will be ignored.\n");
     // Take inputs in the sudoku global array
     for (int i = 0; i < GRID_SIZE; i++)
     {
@@ -22,12 +22,19 @@ void get_sudoku(void)
         printf("Enter row %d: ", i + 1);
         for (int j = 0; j < GRID_SIZE; j++)
         {
-            // Keep taking input until it is between 0 and 9 inclusive
+            // Check for correct input
+            int correct_input = 0;
+            char input_str[2];
             do
             {
-                scanf("%1d", &sudoku[i][j][0]);
-            } while (sudoku[i][j][0] < 0 || sudoku[i][j][0] > 9);
+                // Use fgets to read a line of input from the user
+                fgets(input_str, sizeof(input_str), stdin);
+                // Use sscanf to parse the line and extract the integer value
+                correct_input = sscanf(input_str, "%1d", &sudoku[i][j][0]);
+            } while (correct_input != 1);
         }
+        // Ignore any extra numbers
+        fflush(stdin);
     }
 }
 
@@ -163,8 +170,8 @@ bool valid_num(int num, int r, int c)
 
 /**************************************************************************************
  * valid_puzzle : Checks whether each number of the puzzle is valid.                  *
- *                If even a single number is invalid, it will return true,            *
- *                else false.                                                         *
+ *                If even a single number is invalid, it will return false,           *
+ *                else true.                                                          *
  **************************************************************************************/
 // Function to check validity of sudoku puzzle
 bool valid_puzzle(void)
@@ -267,6 +274,42 @@ void fill_possibilities(void)
     }
 }
 
+/********************************************************************************************
+ * update_possibilities : This function remove all possibilities of cell at row and col     *
+ *                        and removes all possibilities equal to num from the same          *
+ *                        row, column and block.                                            *
+ *                        This should be called whenever a number is placed.                *
+ ********************************************************************************************/
+void update_possiblities(int row, int col, int num)
+{
+    // removes the possiblities of a recently placed number
+    for (int i = 1; i < 10; i++)
+    {
+        sudoku[row][col][i] = 0;
+    }
+
+    // removes possibilities equal to num from row
+    for (int changing_row = 0; changing_row < 9; changing_row++)
+    {
+        sudoku[changing_row][col][num] = 0;
+    }
+
+    // removes possibilities equal to num from column
+    for (int changing_col = 0; changing_col < 9; changing_col++)
+    {
+        sudoku[row][changing_col][num] = 0;
+    }
+
+    // removes possibilities equal to num from block
+    for (int changing_row = row - row % 3; changing_row < (row - row % 3) + 3; changing_row++)
+    {
+        for (int changing_col = col - col % 3; changing_col < (col - col % 3) + 3; changing_col++)
+        {
+            sudoku[changing_row][changing_col][num] = 0;
+        }
+    }
+}
+
 /***********************************************************************************
  * check_progress : Returns the number of blank spaces left in the puzzle.         *
  *                  A blank space is indicated by 0.                               *
@@ -318,7 +361,7 @@ void naked_singles(void)
             {
                 sudoku[i][j][0] = num;
                 // Update possibilities
-                fill_possibilities();
+                update_possiblities(i, j, num);
             }
         }
     }
@@ -358,7 +401,7 @@ void hidden_singles(void)
             if (count == 1)
             {
                 sudoku[check_r][check_c][0] = num;
-                fill_possibilities();
+                update_possiblities(check_r, check_c, num);
             }
         }
     }
@@ -389,7 +432,7 @@ void hidden_singles(void)
             if (count == 1)
             {
                 sudoku[check_r][check_c][0] = num;
-                fill_possibilities();
+                update_possiblities(check_r, check_c, num);
             }
         }
     }
@@ -426,7 +469,175 @@ void hidden_singles(void)
                 {
                     sudoku[check_r][check_c][0] = num;
                     // Update possibilities
-                    fill_possibilities();
+                    update_possiblities(check_r, check_c, num);
+                }
+            }
+        }
+    }
+}
+
+/*************************************************************************************************
+ * Naked Pairs : This function looks for two cells having the same two possibilities             *
+ *               in a given block, row, or column and removes those possibilities from           *
+ *               all others cells in the same row, block or column.                              *
+ *************************************************************************************************/
+// Function that looks for naked pairs
+void naked_pairs(void)
+{
+    // Loop through puzzle
+    for (int i = 0; i < 9; i++)
+    {
+        for (int j = 0; j < 9; j++)
+        {
+            // Look for spaces with a pair
+            int count = 0;
+            for (int k = 1; k <= 9; k++)
+            {
+                if (sudoku[i][j][k] == k)
+                {
+                    count++;
+                }
+            }
+            // If a pair is found
+            if (count == 2)
+            {
+                // Look for another space having same pair in same row, column or block
+                // Check row
+                for (int l = 0; l < 9; l++)
+                {
+                    count = 0;
+                    for (int k = 1; k <= 9; k++)
+                    {
+                        if (sudoku[i][l][k] == k && (l != j))
+                        {
+                            count++;
+                        }
+                    }
+                    // Another pair found in same row
+                    if (count == 2)
+                    {
+                        count = 0;
+                        // Check if possibilities are the same
+                        for (int k = 1; k <= 9; k++)
+                        {
+                            if (sudoku[i][j][k] == sudoku[i][l][k] && (sudoku[i][j][k] != 0))
+                            {
+                                count++;
+                            }
+                        }
+                        // If another pair found
+                        if (count == 2)
+                        {
+                            // Remove all such possibilities from row
+                            for (int k = 1; k <= 9; k++)
+                            {
+                                if ((sudoku[i][j][k] == k))
+                                {
+                                    for (int m = 0; m < 9; m++)
+                                    {
+                                        if (m != j && m != l)
+                                        {
+                                            sudoku[i][m][k] = 0;
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                // Check column
+                for (int l = 0; l < 9; l++)
+                {
+                    count = 0;
+                    for (int k = 1; k <= 9; k++)
+                    {
+                        if (sudoku[l][j][k] == k && (i != l))
+                        {
+                            count++;
+                        }
+                    }
+                    // Another pair found in same column
+                    if (count == 2)
+                    {
+                        count = 0;
+                        // Check if possibilities are the same
+                        for (int k = 1; k <= 9; k++)
+                        {
+                            if (sudoku[i][j][k] == sudoku[l][j][k] && (sudoku[i][j][k] != 0))
+                            {
+                                count++;
+                            }
+                        }
+                        // If another pair found
+                        if (count == 2)
+                        {
+                            // Remove all such possibilities from column
+                            for (int k = 1; k <= 9; k++)
+                            {
+                                if ((sudoku[i][j][k] == k))
+                                {
+                                    for (int m = 0; m < 9; m++)
+                                    {
+                                        if (m != i && m != l)
+                                        {
+                                            sudoku[m][j][k] = 0;
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                // Check block
+                for (int row = i - i % 3; row < (i - i % 3) + 3; row++)
+                {
+                    for (int col = j - j % 3; col < (j - j % 3) + 3; col++)
+                    {
+                        count = 0;
+                        for (int k = 1; k <= 9; k++)
+                        {
+                            if (sudoku[row][col][k] == k && (row != i || col != j))
+                            {
+                                count++;
+                            }
+                        }
+                        // Another pair found in same block
+                        if (count == 2)
+                        {
+                            count = 0;
+                            // Check if possibilities are the same
+                            for (int k = 1; k <= 9; k++)
+                            {
+                                if (sudoku[i][j][k] == sudoku[row][col][k] && (sudoku[i][j][k] != 0))
+                                {
+                                    count++;
+                                }
+                            }
+                            if (count == 2)
+                            {
+                                // Remove all such possibilities from block
+                                for (int k = 1; k <= 9; k++)
+                                {
+                                    if (sudoku[i][j][k] == k)
+                                    {
+                                        for (int m = i - i % 3; m < (i - i % 3) + 3; m++)
+                                        {
+                                            for (int n = j - j % 3; n < (j - j % 3) + 3; n++)
+                                            {
+                                                if (m != i && n != j && m != row && n != col)
+                                                {
+                                                    sudoku[m][n][k] = 0;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -533,7 +744,7 @@ bool find_blank(int *row, int *col)
 
 /*********************************************************************************************
  * solve_sudoku : It is a recursive function.                                                *
- *                If a puzzle is unsolvable by conventional methods,                         *
+ *                If a puzzle is unsolvable by applied conventional methods,                 *
  *                this function will try and solve it using backtracking.                    *
  *                It will take the first blank space and place 1 there. Then                 *
  *                it will try solving the rest of the puzzle using this assumption.          *
