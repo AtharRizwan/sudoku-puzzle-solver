@@ -9,6 +9,7 @@ int main(void)
     printf("\t*                                                      *\n");
     printf("\t********************************************************\n");
 
+    char choice;
     while (1)
     {
         // Keep taking input until the user enters a valid puzzle
@@ -25,6 +26,17 @@ int main(void)
                 break;
             }
             printf("The sudoku you entered is invalid.\n\n");
+            // Ask User to continue or exit
+            printf("Would you like to try again?\n");
+            printf("Enter Y/y to continue, enter any other key to exit: ");
+            scanf(" %c", &choice);
+            // Prevent overflow of input
+            fflush(stdin);
+            if (choice != 'y' && choice != 'Y')
+            {
+                return 0;
+            }
+            printf("\n\n");
         }
 
         // Call function to fill possibilities
@@ -69,12 +81,13 @@ int main(void)
         // Ask user if he wants to continue or exit
         printf("Would you like to solve a different puzzle?\n");
         printf("Enter Y/y to continue, enter any other key to exit: ");
-        int choice;
         scanf(" %c", &choice);
         if (choice != 'y' && choice != 'Y')
         {
             break;
         }
+        // Prevent overflow of input
+        fflush(stdin);
         printf("\n\n");
     }
     return 0;
