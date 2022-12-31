@@ -22,6 +22,15 @@ void get_sudoku(void)
         printf("Enter row %d: ", i + 1);
         for (int j = 0; j < GRID_SIZE; j++)
         {
+            // Take input correctly
+            char input;
+            do 
+            {
+                scanf("%c", &input);
+            } while (input < '0' || input > '9');
+            // Store input
+            sudoku[i][j][0] = input - '0';
+            /*
             // Check for correct input
             int correct_input = 0;
             char input_str[2];
@@ -32,6 +41,7 @@ void get_sudoku(void)
                 // Use sscanf to parse the line and extract the integer value
                 correct_input = sscanf(input_str, "%1d", &sudoku[i][j][0]);
             } while (correct_input != 1);
+            */
         }
         // Ignore any extra numbers
         fflush(stdin);
