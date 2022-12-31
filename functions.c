@@ -121,6 +121,83 @@ void display_sudoku(void)
     printf("\n\n");
 }
 
+/****************************************************************************
+ * in_row : Checks if a number is already present in a particular row.      *
+ ****************************************************************************/
+bool in_row(int row, int num)
+{
+    // Got through the given row, checking for the number
+    for (int col = 0; col < GRID_SIZE; col++)
+    {
+        if (sudoku[row][col][0] == num)
+        {
+            // Return true if number is already present
+            return true;
+        }
+    }
+    // Return false if number is not present
+    return false;
+}
+
+/****************************************************************************
+ * in_col : Checks if a number is already present in a particular column    *
+ ****************************************************************************/
+bool in_col(int col, int num)
+{
+    // Got through the given column, checking for the number
+    for (int row = 0; row < GRID_SIZE; row++)
+    {
+        if (sudoku[row][col][0] == num)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+/****************************************************************************
+ * in_block : Checks if a number is already present in a particular block   *
+ ****************************************************************************/
+bool in_block(int start_row, int start_col, int num)
+{
+    // Got through the given block, checking for the number
+    for (int row = 0; row < 3; row++)
+    {
+        for (int col = 0; col < 3; col++)
+        {
+            if (sudoku[row + start_row][col + start_col][0] == num)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/****************************************************************************
+ * is_safe : Checks if a number is safe to place at a particular blank      *
+ *           A number will only be safe to place if it is not already       *
+ *           present in corresponding row, block or column.                 *
+ ****************************************************************************/
+bool is_safe(int row, int col, int num)
+{
+    // Check if the number is already present in the current row
+    if (in_row(row, num))
+        return false;
+
+    // Check if the number is already present in the current column
+    if (in_col(col, num))
+        return false;
+
+    // Check if the number is already present in the current 3x3 box
+    if (in_block(row - row % 3, col - col % 3, num))
+        return false;
+
+    // The number is not present in the current row, column, or box,
+    // so it is safe to place it at (row, col)
+    return true;
+}
+
 /******************************************************************************************
  * valid_num : Checks whether a specific number(num) at row(r) and column(c) is valid.    *
  *             It will return true if number is valid, else false.                        *
@@ -654,83 +731,6 @@ void naked_pairs(void)
     }
 }
 
-/****************************************************************************
- * in_row : Checks if a number is already present in a particular row.      *
- ****************************************************************************/
-bool in_row(int row, int num)
-{
-    // Got through the given row, checking for the number
-    for (int col = 0; col < GRID_SIZE; col++)
-    {
-        if (sudoku[row][col][0] == num)
-        {
-            // Return true if number is already present
-            return true;
-        }
-    }
-    // Return false if number is not present
-    return false;
-}
-
-/****************************************************************************
- * in_col : Checks if a number is already present in a particular column    *
- ****************************************************************************/
-bool in_col(int col, int num)
-{
-    // Got through the given column, checking for the number
-    for (int row = 0; row < GRID_SIZE; row++)
-    {
-        if (sudoku[row][col][0] == num)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-/****************************************************************************
- * in_block : Checks if a number is already present in a particular block   *
- ****************************************************************************/
-bool in_block(int start_row, int start_col, int num)
-{
-    // Got through the given block, checking for the number
-    for (int row = 0; row < 3; row++)
-    {
-        for (int col = 0; col < 3; col++)
-        {
-            if (sudoku[row + start_row][col + start_col][0] == num)
-            {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-/****************************************************************************
- * is_safe : Checks if a number is safe to place at a particular blank      *
- *           A number will only be safe to place if it is not already       *
- *           present in corresponding row, block or column.                 *
- ****************************************************************************/
-bool is_safe(int row, int col, int num)
-{
-    // Check if the number is already present in the current row
-    if (in_row(row, num))
-        return false;
-
-    // Check if the number is already present in the current column
-    if (in_col(col, num))
-        return false;
-
-    // Check if the number is already present in the current 3x3 box
-    if (in_block(row - row % 3, col - col % 3, num))
-        return false;
-
-    // The number is not present in the current row, column, or box,
-    // so it is safe to place it at (row, col)
-    return true;
-}
-
 /***********************************************************************************
  * find_blank : Finds a blank space.                                               *
  *              Returns true if a blank space if found, else returns false.        *
@@ -763,7 +763,7 @@ bool find_blank(int *row, int *col)
  *                Like this, it will try all numbers from 1 to 9 for each blank space.       *
  *                It will return true, if no blank space is left.                            *
  *                If it is unable to solve the puzzle using any number, it will              *
- *                return false.                                                              *
+ *                return false, else true.                                                   *
  *********************************************************************************************/
 bool solve_sudoku(void)
 {
