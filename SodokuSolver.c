@@ -1,4 +1,4 @@
-#include "functions.c"
+#include "functions.h"
 
 int main(void)
 {
@@ -29,13 +29,13 @@ int main(void)
             // Ask User to continue or exit
             printf("Would you like to try again?\n");
             printf("Enter Y/y to continue, enter any other key to exit: ");
-            scanf(" %c", &choice);
-            // Prevent overflow of input
-            fflush(stdin);
+            choice = getchar();
             if (choice != 'y' && choice != 'Y')
             {
                 return 0;
             }
+            // Ignore extra characters
+            while ((getchar()) != '\n');
             printf("\n\n");
         }
 
@@ -44,16 +44,12 @@ int main(void)
         do
         {
             int initial_check = check_progress();
-            // Fill naked singles
-            naked_singles();
+            // Fill apparent singles
+            apparent_singles();
             // Fill hidden singles
             hidden_singles();
-            // Find naked pairs
-            naked_pairs();
-            // Fill naked singles
-            naked_singles();
-            // Fill hidden singles
-            hidden_singles();
+            // Find apparent pairs
+            apparent_pairs();
             int final_check = check_progress();
             // If no progress is made then break the loop
             if (final_check == initial_check)
@@ -81,13 +77,13 @@ int main(void)
         // Ask user if he wants to continue or exit
         printf("Would you like to solve a different puzzle?\n");
         printf("Enter Y/y to continue, enter any other key to exit: ");
-        scanf(" %c", &choice);
+        choice = getchar();
         if (choice != 'y' && choice != 'Y')
         {
             break;
         }
-        // Prevent overflow of input
-        fflush(stdin);
+        // Ignore extra characters
+        while ((getchar()) != '\n');
         printf("\n\n");
     }
     return 0;
