@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #define GRID_SIZE 9
-// The third dimension is for storing possibilities
-int sudoku[GRID_SIZE][GRID_SIZE][10] = {0};
+int sudoku[GRID_SIZE][GRID_SIZE][10] = { 0 };
 
 /***********************************************************************************************
  * get_sudoku : Allows the user to enter a sudoku puzzle row wise.                             *
@@ -26,25 +25,13 @@ void get_sudoku(void)
             char input;
             do 
             {
-                scanf("%c", &input);
+                input = getchar();
             } while (input < '0' || input > '9');
             // Store input
             sudoku[i][j][0] = input - '0';
-            /*
-            // Check for correct input
-            int correct_input = 0;
-            char input_str[2];
-            do
-            {
-                // Use fgets to read a line of input from the user
-                fgets(input_str, sizeof(input_str), stdin);
-                // Use sscanf to parse the line and extract the integer value
-                correct_input = sscanf(input_str, "%1d", &sudoku[i][j][0]);
-            } while (correct_input != 1);
-            */
         }
         // Ignore any extra numbers
-        fflush(stdin);
+        while ((getchar()) != '\n');
     }
 }
 
@@ -119,83 +106,6 @@ void display_sudoku(void)
         printf("\n");
     }
     printf("\n\n");
-}
-
-/****************************************************************************
- * in_row : Checks if a number is already present in a particular row.      *
- ****************************************************************************/
-bool in_row(int row, int num)
-{
-    // Got through the given row, checking for the number
-    for (int col = 0; col < GRID_SIZE; col++)
-    {
-        if (sudoku[row][col][0] == num)
-        {
-            // Return true if number is already present
-            return true;
-        }
-    }
-    // Return false if number is not present
-    return false;
-}
-
-/****************************************************************************
- * in_col : Checks if a number is already present in a particular column    *
- ****************************************************************************/
-bool in_col(int col, int num)
-{
-    // Got through the given column, checking for the number
-    for (int row = 0; row < GRID_SIZE; row++)
-    {
-        if (sudoku[row][col][0] == num)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-/****************************************************************************
- * in_block : Checks if a number is already present in a particular block   *
- ****************************************************************************/
-bool in_block(int start_row, int start_col, int num)
-{
-    // Got through the given block, checking for the number
-    for (int row = 0; row < 3; row++)
-    {
-        for (int col = 0; col < 3; col++)
-        {
-            if (sudoku[row + start_row][col + start_col][0] == num)
-            {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-/****************************************************************************
- * is_safe : Checks if a number is safe to place at a particular blank      *
- *           A number will only be safe to place if it is not already       *
- *           present in corresponding row, block or column.                 *
- ****************************************************************************/
-bool is_safe(int row, int col, int num)
-{
-    // Check if the number is already present in the current row
-    if (in_row(row, num))
-        return false;
-
-    // Check if the number is already present in the current column
-    if (in_col(col, num))
-        return false;
-
-    // Check if the number is already present in the current 3x3 box
-    if (in_block(row - row % 3, col - col % 3, num))
-        return false;
-
-    // The number is not present in the current row, column, or box,
-    // so it is safe to place it at (row, col)
-    return true;
 }
 
 /******************************************************************************************
@@ -341,7 +251,7 @@ void fill_possibilities(void)
                 for (int l = j - j % 3, end2 = (j - j % 3) + 3; l < end2; l++)
                 {
                     // Skip zeros
-                    if (sudoku[k][l] == 0)
+                    if (sudoku[k][l][0] == 0)
                     {
                         continue;
                     }
@@ -421,11 +331,11 @@ int check_progress(void)
 }
 
 /*******************************************************************************
- * naked_singles : Fills all the naked singles in the puzzle.                  *
- *                 A cell has a naked single if it has only                    *
+ * apparent_singles : Fills all the apparent singles in the puzzle.                  *
+ *                 A cell has a apparent single if it has only                    *
  *                 a single possibility.                                       *
  *******************************************************************************/
-void naked_singles(void)
+void apparent_singles(void)
 {
     // Loop through puzzle
     for (int i = 0; i < GRID_SIZE; i++)
@@ -568,8 +478,8 @@ void hidden_singles(void)
  *               in a given block, row, or column and removes those possibilities from           *
  *               all others cells in the same row, block or column.                              *
  *************************************************************************************************/
-// Function that looks for naked pairs
-void naked_pairs(void)
+// Function that looks for apparent pairs
+void apparent_pairs(void)
 {
     // Loop through puzzle
     for (int i = 0; i < 9; i++)
@@ -731,6 +641,83 @@ void naked_pairs(void)
     }
 }
 
+/****************************************************************************
+ * in_row : Checks if a number is already present in a particular row.      *
+ ****************************************************************************/
+bool in_row(int row, int num)
+{
+    // Got through the given row, checking for the number
+    for (int col = 0; col < GRID_SIZE; col++)
+    {
+        if (sudoku[row][col][0] == num)
+        {
+            // Return true if number is already present
+            return true;
+        }
+    }
+    // Return false if number is not present
+    return false;
+}
+
+/****************************************************************************
+ * in_col : Checks if a number is already present in a particular column    *
+ ****************************************************************************/
+bool in_col(int col, int num)
+{
+    // Got through the given column, checking for the number
+    for (int row = 0; row < GRID_SIZE; row++)
+    {
+        if (sudoku[row][col][0] == num)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+/****************************************************************************
+ * in_block : Checks if a number is already present in a particular block   *
+ ****************************************************************************/
+bool in_block(int start_row, int start_col, int num)
+{
+    // Got through the given block, checking for the number
+    for (int row = 0; row < 3; row++)
+    {
+        for (int col = 0; col < 3; col++)
+        {
+            if (sudoku[row + start_row][col + start_col][0] == num)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/****************************************************************************
+ * is_safe : Checks if a number is safe to place at a particular blank      *
+ *           A number will only be safe to place if it is not already       *
+ *           present in corresponding row, block or column.                 *
+ ****************************************************************************/
+bool is_safe(int row, int col, int num)
+{
+    // Check if the number is already present in the current row
+    if (in_row(row, num))
+        return false;
+
+    // Check if the number is already present in the current column
+    if (in_col(col, num))
+        return false;
+
+    // Check if the number is already present in the current 3x3 box
+    if (in_block(row - row % 3, col - col % 3, num))
+        return false;
+
+    // The number is not present in the current row, column, or box,
+    // so it is safe to place it at (row, col)
+    return true;
+}
+
 /***********************************************************************************
  * find_blank : Finds a blank space.                                               *
  *              Returns true if a blank space if found, else returns false.        *
@@ -763,7 +750,7 @@ bool find_blank(int *row, int *col)
  *                Like this, it will try all numbers from 1 to 9 for each blank space.       *
  *                It will return true, if no blank space is left.                            *
  *                If it is unable to solve the puzzle using any number, it will              *
- *                return false, else true.                                                   *
+ *                return false.                                                              *
  *********************************************************************************************/
 bool solve_sudoku(void)
 {
